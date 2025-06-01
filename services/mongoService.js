@@ -37,14 +37,27 @@ async function obtenerChats(coleccion, filtros = {}, ordenamiento = { campo: "_i
     // Construir query de filtros
     const query = {};
     
-    // Filtrar por tipo de asistente
+    // Filtrar por tipo de asistente basado en la colección o contenido
+    // En este caso, el tipo de asistente puede estar determinado por la colección
     if (filtros.asistente) {
-      if (filtros.asistente === "Granville") {
-        query.asistente = "Granville";
+      // Si se usa una colección específica para cada asistente, no necesitamos filtrar por asistente
+      // Pero podemos agregar lógica específica si es necesario
+      if (coleccion === "asistente_pw" && filtros.asistente !== "Pampawagen") {
+        return []; // Si se busca otro asistente en la colección de Pampawagen, retornar vacío
+      } else if (coleccion === "asistente_fc" && filtros.asistente !== "Fortecar") {
+        return []; // Si se busca otro asistente en la colección de Fortecar, retornar vacío
+      } else if (coleccion === "asistente" && filtros.asistente !== "Granville") {
+        return []; // Si se busca otro asistente en la colección de Granville, retornar vacío
+      }
+      
+      // Alternativamente, podemos buscar en el contenido de los mensajes
+      // para identificar el tipo de asistente
+      if (filtros.asistente === "Pampawagen") {
+        query["messages.data.content"] = { $regex: "Pampawagen|Martina", $options: "i" };
       } else if (filtros.asistente === "Fortecar") {
-        query.asistente_fc = "Fortecar";
-      } else if (filtros.asistente === "Pampawagen") {
-        query.asistente_pw = "Pampawagen";
+        query["messages.data.content"] = { $regex: "Fortecar", $options: "i" };
+      } else if (filtros.asistente === "Granville") {
+        query["messages.data.content"] = { $regex: "Granville", $options: "i" };
       }
     }
     
@@ -53,38 +66,95 @@ async function obtenerChats(coleccion, filtros = {}, ordenamiento = { campo: "_i
       query.sessionId = filtros.sessionId;
     }
     
-    // Filtrar por rango de fechas
+    // Filtrar por rango de fechas en los mensajes
     if (filtros.fechaInicio || filtros.fechaFin) {
-      query.fecha = {};
+      // Buscar documentos que tengan al menos un mensaje dentro del rango de fechas
+      const fechaQuery = {};
+      
       if (filtros.fechaInicio) {
-        query.fecha.$gte = new Date(filtros.fechaInicio);
+        fechaQuery.$gte = new Date(filtros.fechaInicio);
       }
+      
       if (filtros.fechaFin) {
-        query.fecha.$lte = new Date(filtros.fechaFin);
+        fechaQuery.$lte = new Date(filtros.fechaFin);
       }
+      
+      // Buscar en el timestamp de los mensajes
+      query["messages.timestamp"] = fechaQuery;
     }
     
     // Búsqueda por palabras clave en mensajes
     if (filtros.busqueda) {
-      query.$or = [
-        { 'mensajes.texto': { $regex: filtros.busqueda, $options: 'i' } },
-        { 'mensaje': { $regex: filtros.busqueda, $options: 'i' } }
-      ];
+      // Buscar en el contenido de los mensajes
+      query["messages.data.content"] = { $regex: filtros.busqueda, $options: 'i' };
     }
     
     console.log("🔍 Aplicando filtros:", JSON.stringify(query));
     
     // Configurar ordenamiento
     const sort = {};
-    sort[ordenamiento.campo] = ordenamiento.direccion;
     
+    // Manejar ordenamiento especial para campos anidados
+    if (ordenamiento.campo === "fecha") {
+      // Ordenar por la fecha del último mensaje
+      sort["messages.timestamp"] = ordenamiento.direccion;
+    } else {
+      sort[ordenamiento.campo] = ordenamiento.direccion;
+    }
+    
+    // Obtener los documentos
     const datos = await db.collection(coleccion)
       .find(query)
       .sort(sort)
       .limit(limite)
       .toArray();
+    
+    // Procesar los datos para adaptarlos al formato esperado por la vista
+    return datos.map(chat => {
+      // Determinar el tipo de asistente basado en la colección o el contenido
+      let tipoAsistente = "Desconocido";
+      if (coleccion === "asistente_pw") {
+        tipoAsistente = "Pampawagen";
+      } else if (coleccion === "asistente_fc") {
+        tipoAsistente = "Fortecar";
+      } else if (coleccion === "asistente") {
+        tipoAsistente = "Granville";
+      } else {
+        // Intentar determinar por el contenido de los mensajes
+        const mensajesAsistente = chat.messages.filter(m => m.type === "ai");
+        if (mensajesAsistente.length > 0) {
+          const contenido = mensajesAsistente[0].data.content;
+          if (contenido.includes("Pampawagen") || contenido.includes("Martina")) {
+            tipoAsistente = "Pampawagen";
+          } else if (contenido.includes("Fortecar")) {
+            tipoAsistente = "Fortecar";
+          } else if (contenido.includes("Granville")) {
+            tipoAsistente = "Granville";
+          }
+        }
+      }
       
-    return datos;
+      // Convertir mensajes al formato esperado por la vista
+      const mensajes = chat.messages.map(mensaje => {
+        return {
+          texto: mensaje.data.content,
+          esUsuario: mensaje.type === "human",
+          fecha: mensaje.timestamp
+        };
+      });
+      
+      // Crear un objeto adaptado para la vista
+      return {
+        _id: chat._id,
+        sessionId: chat.sessionId,
+        fecha: chat.messages && chat.messages.length > 0 ? chat.messages[0].timestamp : new Date(),
+        mensajes: mensajes,
+        // Agregar campos de asistente según el tipo
+        ...(tipoAsistente === "Granville" && { asistente: "Granville" }),
+        ...(tipoAsistente === "Fortecar" && { asistente_fc: "Fortecar" }),
+        ...(tipoAsistente === "Pampawagen" && { asistente_pw: "Pampawagen" })
+      };
+    });
   } catch (error) {
     console.error("❌ Error consultando MongoDB:", error.message);
     return [];

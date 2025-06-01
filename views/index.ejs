@@ -45,7 +45,9 @@
                 <option value="">Seleccionar número</option>
                 <% if (typeof sessionIds !== 'undefined' && sessionIds.length > 0) { %>
                   <% sessionIds.forEach(id => { %>
-                    <option value="<%= id %>" <%= (filtros && filtros.sessionId === id) ? 'selected' : '' %>><%= id %></option>
+                    <option value="<%= id %>" <%= (filtros && filtros.sessionId === id) ? 'selected' : '' %>>
+                      <%= id.replace(/(\d{2})(\d{2})(\d{4})(\d{4})/, '+$1 $2 $3-$4') %>
+                    </option>
                   <% }) %>
                 <% } %>
               </select>
@@ -140,52 +142,155 @@
               }
               chatsBySession[chat.sessionId].push(chat);
             });
+            
+            // Function to format phone number
+            function formatPhoneNumber(phone) {
+              if (!phone) return '';
+              return phone.replace(/(\d{2,4})(\d{2})(\d{4})(\d{4})/, '+$1 $2 $3-$4');
+            }
+            
+            // Function to determine assistant type
+            function getAssistantType(chat) {
+              // Check direct properties first
+              if (chat.asistente === "Granville") return "Granville";
+              if (chat.asistente_fc === "Fortecar") return "Fortecar";
+              if (chat.asistente_pw === "Pampawagen") return "Pampawagen";
+              
+              // Check in messages array (new format from example)
+              if (chat.messages && Array.isArray(chat.messages)) {
+                const aiMessages = chat.messages.filter(m => m.type === "ai");
+                if (aiMessages.length > 0) {
+                  const content = aiMessages[0].data.content;
+                  if (content.includes("Pampawagen") || content.includes("Martina")) {
+                    return "Pampawagen";
+                  } else if (content.includes("Fortecar")) {
+                    return "Fortecar";
+                  } else if (content.includes("Granville")) {
+                    return "Granville";
+                  }
+                }
+              }
+              
+              // Check in mensajes array (old format)
+              if (chat.mensajes && Array.isArray(chat.mensajes)) {
+                const aiMessages = chat.mensajes.filter(m => !m.esUsuario);
+                if (aiMessages.length > 0) {
+                  const content = aiMessages[0].texto;
+                  if (content.includes("Pampawagen") || content.includes("Martina")) {
+                    return "Pampawagen";
+                  } else if (content.includes("Fortecar")) {
+                    return "Fortecar";
+                  } else if (content.includes("Granville")) {
+                    return "Granville";
+                  }
+                }
+              }
+              
+              return "Asistente";
+            }
+            
+            // Function to count messages
+            function countMessages(chat) {
+              if (chat.messages && Array.isArray(chat.messages)) {
+                return chat.messages.length;
+              } else if (chat.mensajes && Array.isArray(chat.mensajes)) {
+                return chat.mensajes.length;
+              } else if (chat.mensaje) {
+                return 1;
+              }
+              return 0;
+            }
+            
+            // Function to get first message timestamp
+            function getFirstTimestamp(chat) {
+              if (chat.messages && chat.messages.length > 0) {
+                return chat.messages[0].timestamp;
+              } else if (chat.mensajes && chat.mensajes.length > 0) {
+                return chat.mensajes[0].fecha;
+              } else if (chat.fecha) {
+                return chat.fecha;
+              }
+              return new Date();
+            }
+            
+            // Function to format date
+            function formatDate(dateStr) {
+              const date = new Date(dateStr);
+              return date.toLocaleDateString('es-ES', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              });
+            }
+            
+            // Function to format time
+            function formatTime(dateStr) {
+              const date = new Date(dateStr);
+              return date.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              });
+            }
           %>
           
           <% Object.entries(chatsBySession).forEach(([sessionId, sessionChats]) => { %>
             <div class="chat-session">
+              <% 
+                const assistantType = getAssistantType(sessionChats[0]);
+                const firstTimestamp = getFirstTimestamp(sessionChats[0]);
+                let totalMessages = 0;
+                sessionChats.forEach(chat => {
+                  totalMessages += countMessages(chat);
+                });
+              %>
+              
               <div class="chat-header">
                 <h2>
-                  <% 
-                    let assistantType = "Asistente";
-                    if (sessionChats[0].asistente === "Granville") {
-                      assistantType = "Granville";
-                    } else if (sessionChats[0].asistente_fc === "Fortecar") {
-                      assistantType = "Fortecar";
-                    } else if (sessionChats[0].asistente_pw === "Pampawagen") {
-                      assistantType = "Pampawagen";
-                    }
-                  %>
                   <span class="assistant-badge assistant-<%= assistantType.toLowerCase() %>"><%= assistantType %></span>
-                  <%= sessionId %>
+                  <%= formatPhoneNumber(sessionId) %>
                 </h2>
                 <div class="chat-session-info">
-                  <span><%= new Date(sessionChats[0].fecha).toLocaleDateString('es-ES') %></span>
-                  <span><%= sessionChats.length %> mensajes</span>
+                  <span><%= formatDate(firstTimestamp) %></span>
+                  <span><%= totalMessages %> mensajes</span>
                 </div>
               </div>
               
               <div class="chat-messages">
                 <% sessionChats.forEach(chat => { %>
-                  <% if (chat.mensajes && Array.isArray(chat.mensajes)) { %>
+                  <% if (chat.messages && Array.isArray(chat.messages)) { %>
+                    <% // New format from the example %>
+                    <% chat.messages.forEach(message => { %>
+                      <div class="message <%= message.type === 'human' ? 'message-user' : 'message-assistant message-' + assistantType.toLowerCase() %>">
+                        <div class="message-bubble">
+                          <%= message.data.content.replace(/\n/g, '<br>') %>
+                          <div class="message-meta">
+                            <span class="message-sender"><%= message.type === 'human' ? 'Usuario' : assistantType %></span>
+                            <span class="message-time"><%= formatTime(message.timestamp) %></span>
+                          </div>
+                        </div>
+                      </div>
+                    <% }) %>
+                  <% } else if (chat.mensajes && Array.isArray(chat.mensajes)) { %>
+                    <% // Old format with mensajes array %>
                     <% chat.mensajes.forEach(mensaje => { %>
                       <div class="message <%= mensaje.esUsuario ? 'message-user' : 'message-assistant message-' + assistantType.toLowerCase() %>">
                         <div class="message-bubble">
-                          <%= mensaje.texto %>
+                          <%= mensaje.texto.replace(/\n/g, '<br>') %>
                           <div class="message-meta">
                             <span class="message-sender"><%= mensaje.esUsuario ? 'Usuario' : assistantType %></span>
-                            <span class="message-time"><%= new Date(mensaje.fecha || chat.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) %></span>
+                            <span class="message-time"><%= formatTime(mensaje.fecha || chat.fecha) %></span>
                           </div>
                         </div>
                       </div>
                     <% }) %>
                   <% } else if (chat.mensaje) { %>
+                    <% // Single message format %>
                     <div class="message <%= chat.esUsuario ? 'message-user' : 'message-assistant message-' + assistantType.toLowerCase() %>">
                       <div class="message-bubble">
-                        <%= chat.mensaje %>
+                        <%= chat.mensaje.replace(/\n/g, '<br>') %>
                         <div class="message-meta">
                           <span class="message-sender"><%= chat.esUsuario ? 'Usuario' : assistantType %></span>
-                          <span class="message-time"><%= new Date(chat.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) %></span>
+                          <span class="message-time"><%= formatTime(chat.fecha) %></span>
                         </div>
                       </div>
                     </div>
