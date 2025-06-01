@@ -5,6 +5,10 @@
   "bin": {
     "create-opencars-service": "./cli.js"
   },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
   "keywords": [
     "express",
     "mongodb",
@@ -13,5 +17,11 @@
     "generator"
   ],
   "author": "DMGSys",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "mongodb": "^6.16.0"
+  }
 }

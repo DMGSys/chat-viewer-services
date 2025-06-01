@@ -1,1 +1,18 @@
-<h1>Vista básica EJS</h1>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat Viewer</title>
+</head>
+<body>
+  <h1><%= mensaje %></h1>
+  <ul>
+    <% if (chats.length > 0) { %>
+      <% chats.forEach(chat => { %>
+        <li><pre><%= JSON.stringify(chat, null, 2) %></pre></li>
+      <% }) %>
+    <% } else { %>
+      <li>No se encontraron chats.</li>
+    <% } %>
+  </ul>
+</body>
+</html>

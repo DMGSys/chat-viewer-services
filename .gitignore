@@ -1,0 +1,15 @@
+# Node modules
+node_modules/
+
+# Archivos de entorno
+.env
+.env.local
+.env.development
+.env.production
+
+# Archivos de logs
+*.log
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
