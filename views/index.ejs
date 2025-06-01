@@ -1,18 +1,231 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Chat Viewer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Viewer - Visualizador de Conversaciones</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-  <h1><%= mensaje %></h1>
-  <ul>
-    <% if (chats.length > 0) { %>
-      <% chats.forEach(chat => { %>
-        <li><pre><%= JSON.stringify(chat, null, 2) %></pre></li>
-      <% }) %>
-    <% } else { %>
-      <li>No se encontraron chats.</li>
-    <% } %>
-  </ul>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <h1><i class="fas fa-comments"></i> Chat Viewer - <%= mensaje %></h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Filter Panel -->
+    <section class="filter-panel">
+      <h2><i class="fas fa-filter"></i> Filtros</h2>
+      
+      <form id="filter-form" method="GET">
+        <div class="filter-row">
+          <!-- Asistente Dropdown -->
+          <div class="filter-group">
+            <label for="asistente">Tipo de Asistente:</label>
+            <div class="custom-select">
+              <select id="asistente" name="asistente">
+                <option value="">Todos los asistentes</option>
+                <% if (typeof tiposAsistentes !== 'undefined' && tiposAsistentes.length > 0) { %>
+                  <% tiposAsistentes.forEach(tipo => { %>
+                    <option value="<%= tipo %>" <%= (filtros && filtros.asistente === tipo) ? 'selected' : '' %>><%= tipo %></option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </div>
+          </div>
+          
+          <!-- SessionId (Teléfono) Dropdown -->
+          <div class="filter-group">
+            <label for="sessionId">Número de Teléfono:</label>
+            <div class="custom-select">
+              <select id="sessionId" name="sessionId">
+                <option value="">Seleccionar número</option>
+                <% if (typeof sessionIds !== 'undefined' && sessionIds.length > 0) { %>
+                  <% sessionIds.forEach(id => { %>
+                    <option value="<%= id %>" <%= (filtros && filtros.sessionId === id) ? 'selected' : '' %>><%= id %></option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Búsqueda por Texto -->
+          <div class="filter-group">
+            <label for="busqueda">Buscar Palabras Clave:</label>
+            <input type="text" id="busqueda" name="busqueda" placeholder="Ingrese texto a buscar..." 
+              value="<%= (filtros && filtros.busqueda) ? filtros.busqueda : '' %>">
+          </div>
+        </div>
+        
+        <div class="filter-row">
+          <!-- Rango de Fechas -->
+          <div class="filter-group">
+            <label>Rango de Fechas:</label>
+            <div class="date-range">
+              <input type="date" id="fechaInicio" name="fechaInicio" 
+                value="<%= (filtros && filtros.fechaInicio) ? filtros.fechaInicio : '' %>">
+              <span>a</span>
+              <input type="date" id="fechaFin" name="fechaFin" 
+                value="<%= (filtros && filtros.fechaFin) ? filtros.fechaFin : '' %>">
+            </div>
+          </div>
+          
+          <!-- Ordenamiento -->
+          <div class="filter-group">
+            <label for="ordenarPor">Ordenar Por:</label>
+            <div class="custom-select">
+              <select id="ordenarPor" name="ordenarPor">
+                <option value="fecha" <%= (!filtros || filtros.ordenarPor === 'fecha') ? 'selected' : '' %>>Fecha</option>
+                <option value="sessionId" <%= (filtros && filtros.ordenarPor === 'sessionId') ? 'selected' : '' %>>Número de Teléfono</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Dirección de Ordenamiento -->
+          <div class="filter-group">
+            <label for="direccion">Dirección:</label>
+            <div class="custom-select">
+              <select id="direccion" name="direccion">
+                <option value="desc" <%= (!filtros || filtros.direccion !== 'asc') ? 'selected' : '' %>>Descendente (más reciente primero)</option>
+                <option value="asc" <%= (filtros && filtros.direccion === 'asc') ? 'selected' : '' %>>Ascendente (más antiguo primero)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="filter-actions">
+          <button type="button" id="reset-button" class="btn btn-secondary">
+            <i class="fas fa-undo"></i> Limpiar Filtros
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search"></i> Buscar
+          </button>
+        </div>
+      </form>
+    </section>
+    
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="loading" style="display: none;">
+      <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- Chat Container -->
+    <section id="chat-container" class="chat-container">
+      <% if (typeof error !== 'undefined') { %>
+        <div class="error-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p><%= error %></p>
+        </div>
+      <% } else if (!chats || chats.length === 0) { %>
+        <div class="no-results">
+          <i class="fas fa-comments"></i>
+          <p>No se encontraron conversaciones con los filtros actuales.</p>
+          <% if (typeof filtros !== 'undefined' && Object.keys(filtros).length > 0) { %>
+            <button class="btn btn-outline" id="reset-button">Limpiar filtros</button>
+          <% } %>
+        </div>
+      <% } else { %>
+        <!-- Chat messages will be rendered by JavaScript -->
+        <!-- This is a fallback for when JS is disabled -->
+        <div class="chat-sessions">
+          <% 
+            // Group chats by sessionId
+            const chatsBySession = {};
+            chats.forEach(chat => {
+              if (!chatsBySession[chat.sessionId]) {
+                chatsBySession[chat.sessionId] = [];
+              }
+              chatsBySession[chat.sessionId].push(chat);
+            });
+          %>
+          
+          <% Object.entries(chatsBySession).forEach(([sessionId, sessionChats]) => { %>
+            <div class="chat-session">
+              <div class="chat-header">
+                <h2>
+                  <% 
+                    let assistantType = "Asistente";
+                    if (sessionChats[0].asistente === "Granville") {
+                      assistantType = "Granville";
+                    } else if (sessionChats[0].asistente_fc === "Fortecar") {
+                      assistantType = "Fortecar";
+                    } else if (sessionChats[0].asistente_pw === "Pampawagen") {
+                      assistantType = "Pampawagen";
+                    }
+                  %>
+                  <span class="assistant-badge assistant-<%= assistantType.toLowerCase() %>"><%= assistantType %></span>
+                  <%= sessionId %>
+                </h2>
+                <div class="chat-session-info">
+                  <span><%= new Date(sessionChats[0].fecha).toLocaleDateString('es-ES') %></span>
+                  <span><%= sessionChats.length %> mensajes</span>
+                </div>
+              </div>
+              
+              <div class="chat-messages">
+                <% sessionChats.forEach(chat => { %>
+                  <% if (chat.mensajes && Array.isArray(chat.mensajes)) { %>
+                    <% chat.mensajes.forEach(mensaje => { %>
+                      <div class="message <%= mensaje.esUsuario ? 'message-user' : 'message-assistant message-' + assistantType.toLowerCase() %>">
+                        <div class="message-bubble">
+                          <%= mensaje.texto %>
+                          <div class="message-meta">
+                            <span class="message-sender"><%= mensaje.esUsuario ? 'Usuario' : assistantType %></span>
+                            <span class="message-time"><%= new Date(mensaje.fecha || chat.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) %></span>
+                          </div>
+                        </div>
+                      </div>
+                    <% }) %>
+                  <% } else if (chat.mensaje) { %>
+                    <div class="message <%= chat.esUsuario ? 'message-user' : 'message-assistant message-' + assistantType.toLowerCase() %>">
+                      <div class="message-bubble">
+                        <%= chat.mensaje %>
+                        <div class="message-meta">
+                          <span class="message-sender"><%= chat.esUsuario ? 'Usuario' : assistantType %></span>
+                          <span class="message-time"><%= new Date(chat.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) %></span>
+                        </div>
+                      </div>
+                    </div>
+                  <% } %>
+                <% }) %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
+    
+    <!-- Export Section -->
+    <section class="export-section">
+      <h3><i class="fas fa-download"></i> Exportar Historial</h3>
+      <p>Descargue el historial de chat completo según los filtros aplicados.</p>
+      
+      <div class="export-options">
+        <button id="export-button" class="btn btn-success">
+          <i class="fas fa-file-download"></i> Exportar Conversaciones
+        </button>
+      </div>
+    </section>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="header" style="margin-top: 2rem;">
+    <div class="container">
+      <p>© <%= new Date().getFullYear() %> Chat Viewer - Desarrollado por DMGSys</p>
+    </div>
+  </footer>
+
+  <!-- Pass data to JavaScript -->
+  <script>
+    const chatsData = <%- JSON.stringify(chats || []) %>;
+    const currentFilters = <%- JSON.stringify(filtros || {}) %>;
+    const currentCollection = "<%= coleccion %>";
+  </script>
+  
+  <!-- JavaScript -->
+  <script src="/js/chat-viewer.js"></script>
 </body>
 </html>

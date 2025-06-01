@@ -1,1 +1,177 @@
-<!DOCTYPE html><html><body><h1>OpenCars Service</h1></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="3;url=/chats/mensajes">
+  <title>Chat Viewer - Visualizador de Conversaciones</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .landing-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      text-align: center;
+    }
+    
+    .landing-title {
+      color: #4a6fa5;
+      margin-bottom: 1.5rem;
+    }
+    
+    .landing-subtitle {
+      color: #6c757d;
+      margin-bottom: 2rem;
+    }
+    
+    .assistant-cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .assistant-card {
+      flex: 1;
+      min-width: 200px;
+      max-width: 250px;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .assistant-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .granville-card {
+      background-color: #e1ebf7;
+      border-left: 4px solid #4a6fa5;
+    }
+    
+    .fortecar-card {
+      background-color: rgba(40, 167, 69, 0.1);
+      border-left: 4px solid #28a745;
+    }
+    
+    .pampawagen-card {
+      background-color: rgba(255, 193, 7, 0.1);
+      border-left: 4px solid #ffc107;
+    }
+    
+    .assistant-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .granville-icon {
+      color: #4a6fa5;
+    }
+    
+    .fortecar-icon {
+      color: #28a745;
+    }
+    
+    .pampawagen-icon {
+      color: #ffc107;
+    }
+    
+    .redirect-message {
+      margin-top: 2rem;
+      font-style: italic;
+      color: #6c757d;
+    }
+    
+    .main-button {
+      display: inline-block;
+      background-color: #4a6fa5;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.2s;
+      margin-top: 1rem;
+    }
+    
+    .main-button:hover {
+      background-color: #3a5a84;
+    }
+    
+    @media (max-width: 768px) {
+      .assistant-cards {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .assistant-card {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <h1><i class="fas fa-comments"></i> Chat Viewer</h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="landing-container">
+      <h1 class="landing-title">Bienvenido al Visualizador de Conversaciones</h1>
+      <p class="landing-subtitle">Explore y analice las conversaciones de los diferentes asistentes</p>
+      
+      <a href="/chats/mensajes" class="main-button">
+        <i class="fas fa-search"></i> Ver Todas las Conversaciones
+      </a>
+      
+      <div class="assistant-cards">
+        <a href="/chats/mensajes?asistente=Granville" class="assistant-card granville-card">
+          <div class="assistant-icon granville-icon">
+            <i class="fas fa-robot"></i>
+          </div>
+          <h3>Granville</h3>
+          <p>Visualice las conversaciones del asistente Granville</p>
+        </a>
+        
+        <a href="/chats/mensajes?asistente=Fortecar" class="assistant-card fortecar-card">
+          <div class="assistant-icon fortecar-icon">
+            <i class="fas fa-car"></i>
+          </div>
+          <h3>Fortecar</h3>
+          <p>Visualice las conversaciones del asistente Fortecar</p>
+        </a>
+        
+        <a href="/chats/mensajes?asistente=Pampawagen" class="assistant-card pampawagen-card">
+          <div class="assistant-icon pampawagen-icon">
+            <i class="fas fa-truck-pickup"></i>
+          </div>
+          <h3>Pampawagen</h3>
+          <p>Visualice las conversaciones del asistente Pampawagen</p>
+        </a>
+      </div>
+      
+      <p class="redirect-message">Será redirigido automáticamente en 3 segundos...</p>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="header" style="margin-top: 2rem;">
+    <div class="container">
+      <p>© <script>document.write(new Date().getFullYear())</script> Chat Viewer - Desarrollado por DMGSys</p>
+    </div>
+  </footer>
+</body>
+</html>
