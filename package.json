@@ -1,0 +1,17 @@
+{
+  "name": "chat-viewer-services",
+  "version": "1.0.0",
+  "description": "Generador de servicios Express + MongoDB para OpenCars",
+  "bin": {
+    "create-opencars-service": "./cli.js"
+  },
+  "keywords": [
+    "express",
+    "mongodb",
+    "template",
+    "opencars",
+    "generator"
+  ],
+  "author": "DMGSys",
+  "license": "MIT"
+}
