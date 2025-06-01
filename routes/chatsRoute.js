@@ -4,7 +4,8 @@ const {
   obtenerChats, 
   obtenerSessionIds, 
   exportarHistorial,
-  obtenerTiposAsistentes
+  obtenerTiposAsistentes,
+  verificarConexion
 } = require("../services/mongoService");
 
 /**
@@ -23,6 +24,12 @@ router.get("/:coleccion", async (req, res) => {
       ordenarPor,
       direccion
     } = req.query;
+
+    // Verificar conexión a la base de datos
+    const conexionExitosa = await verificarConexion();
+    if (!conexionExitosa) {
+      throw new Error("No se pudo conectar a la base de datos. Verifique su archivo .env y la conexión a MongoDB.");
+    }
 
     // Construir objeto de filtros
     const filtros = {};

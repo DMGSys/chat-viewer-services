@@ -1,17 +1,32 @@
 const { MongoClient } = require("mongodb");
 
+// Usar la URI de MongoDB del archivo .env
 const uri = process.env.MONGODB_URI;
-const dbName = "Agendamientos"; // o "openapp" si cambiaste
+const dbName = "Agendamientos"; // Nombre de la base de datos
 
 let client;
 
+/**
+ * Conecta a la base de datos MongoDB
+ * @returns {Object} - Instancia de la base de datos
+ * @throws {Error} - Si no se puede conectar a la base de datos
+ */
 async function connect() {
-  if (!client) {
-    client = new MongoClient(uri);
-    await client.connect();
-    console.log("✅ Conectado a MongoDB");
+  try {
+    if (!uri) {
+      throw new Error("La variable de entorno MONGODB_URI no está definida. Verifique su archivo .env");
+    }
+    
+    if (!client) {
+      client = new MongoClient(uri);
+      await client.connect();
+      console.log("✅ Conectado a MongoDB Atlas");
+    }
+    return client.db(dbName);
+  } catch (error) {
+    console.error("❌ Error de conexión a MongoDB:", error.message);
+    throw new Error(`No se pudo conectar a MongoDB: ${error.message}`);
   }
-  return client.db(dbName);
 }
 
 /**
@@ -38,7 +53,6 @@ async function obtenerChats(coleccion, filtros = {}, ordenamiento = { campo: "_i
     const query = {};
     
     // Filtrar por tipo de asistente basado en la colección o contenido
-    // En este caso, el tipo de asistente puede estar determinado por la colección
     if (filtros.asistente) {
       // Si se usa una colección específica para cada asistente, no necesitamos filtrar por asistente
       // Pero podemos agregar lógica específica si es necesario
@@ -121,7 +135,10 @@ async function obtenerChats(coleccion, filtros = {}, ordenamiento = { campo: "_i
         tipoAsistente = "Granville";
       } else {
         // Intentar determinar por el contenido de los mensajes
-        const mensajesAsistente = chat.messages.filter(m => m.type === "ai");
+        const mensajesAsistente = chat.messages && Array.isArray(chat.messages) 
+          ? chat.messages.filter(m => m.type === "ai")
+          : [];
+          
         if (mensajesAsistente.length > 0) {
           const contenido = mensajesAsistente[0].data.content;
           if (contenido.includes("Pampawagen") || contenido.includes("Martina")) {
@@ -135,13 +152,15 @@ async function obtenerChats(coleccion, filtros = {}, ordenamiento = { campo: "_i
       }
       
       // Convertir mensajes al formato esperado por la vista
-      const mensajes = chat.messages.map(mensaje => {
-        return {
-          texto: mensaje.data.content,
-          esUsuario: mensaje.type === "human",
-          fecha: mensaje.timestamp
-        };
-      });
+      const mensajes = chat.messages && Array.isArray(chat.messages) 
+        ? chat.messages.map(mensaje => {
+            return {
+              texto: mensaje.data.content,
+              esUsuario: mensaje.type === "human",
+              fecha: mensaje.timestamp
+            };
+          })
+        : [];
       
       // Crear un objeto adaptado para la vista
       return {
@@ -204,9 +223,24 @@ async function obtenerTiposAsistentes(coleccion) {
   return ["Granville", "Fortecar", "Pampawagen"];
 }
 
+/**
+ * Verifica la conexión a MongoDB
+ * @returns {boolean} - true si la conexión es exitosa, false en caso contrario
+ */
+async function verificarConexion() {
+  try {
+    await connect();
+    return true;
+  } catch (error) {
+    console.error("❌ Error verificando conexión a MongoDB:", error.message);
+    return false;
+  }
+}
+
 module.exports = { 
   obtenerChats, 
   obtenerSessionIds, 
   exportarHistorial,
-  obtenerTiposAsistentes
+  obtenerTiposAsistentes,
+  verificarConexion
 };
