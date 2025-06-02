@@ -1,0 +1,310 @@
+/* Dashboard Styles - public/css/dashboard.css */
+
+/* === Dashboard Layout === */
+.dashboard-section {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--box-shadow);
+}
+
+.dashboard-section h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.dashboard-section h3 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+  font-size: 1.1rem;
+}
+
+/* === Statistic Cards === */
+.stats-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 200px;
+  background-color: white;
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 4px solid var(--primary-color);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  margin-right: 1rem;
+  color: var(--primary-color);
+  opacity: 0.8;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--secondary-color);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  color: var(--dark-color);
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--secondary-color);
+}
+
+/* Assistant-specific stat cards */
+.stat-card.assistant-granville {
+  border-left-color: var(--granville-color);
+}
+
+.stat-card.assistant-granville .stat-icon {
+  color: var(--granville-color);
+}
+
+.stat-card.assistant-fortecar {
+  border-left-color: var(--fortecar-color);
+}
+
+.stat-card.assistant-fortecar .stat-icon {
+  color: var(--fortecar-color);
+}
+
+.stat-card.assistant-pampawagen {
+  border-left-color: var(--pampawagen-color);
+}
+
+.stat-card.assistant-pampawagen .stat-icon {
+  color: var(--pampawagen-color);
+}
+
+.stat-card.assistant-promedio {
+  border-left-color: #6c757d;
+}
+
+.stat-card.assistant-promedio .stat-icon {
+  color: #6c757d;
+}
+
+/* === Chart Styles === */
+.chart-container {
+  background-color: white;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  min-height: 300px;
+}
+
+.chart-tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.tab-button {
+  background-color: var(--light-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  color: var(--secondary-color);
+}
+
+.tab-button:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.tab-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* === Data Tables === */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  background-color: white;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.data-table .message-preview {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-table .user-message {
+  color: var(--dark-color);
+}
+
+.data-table .assistant-message {
+  color: var(--primary-color);
+  font-style: italic;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* === No Data State === */
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--secondary-color);
+  background-color: var(--light-color);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.no-data i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* === Recent Conversations === */
+.recent-conversations {
+  margin-top: 1rem;
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 768px) {
+  .stats-cards {
+    flex-direction: column;
+  }
+  
+  .stat-card {
+    width: 100%;
+  }
+  
+  .tab-buttons {
+    flex-wrap: wrap;
+  }
+  
+  .data-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .chart-container {
+    padding: 1rem;
+    min-height: 250px;
+  }
+}
+
+/* === Animations === */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-section {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.stat-card {
+  animation: fadeIn 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* === Loading State === */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  border-radius: var(--border-radius);
+}
+
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 0.25rem solid rgba(74, 111, 165, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

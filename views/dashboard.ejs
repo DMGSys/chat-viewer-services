@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Chat Viewer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <h1><i class="fas fa-chart-line"></i> Dashboard - Chat Viewer</h1>
+    </div>
+  </header>
+
+  <!-- Botón para volver al menú principal -->
+  <div class="container nav-button-container">
+    <a href="/" class="nav-button">
+      <i class="fas fa-home"></i> Volver al Menú Principal
+    </a>
+    <a href="/chats/asistente_pw" class="nav-button">
+      <i class="fas fa-comments"></i> Ver Chats de Pampawagen
+    </a>
+    <a href="/chats/asistente_fc" class="nav-button">
+      <i class="fas fa-comments"></i> Ver Chats de Fortecar
+    </a>
+    <a href="/chats/asistente" class="nav-button">
+      <i class="fas fa-comments"></i> Ver Chats de Granville
+    </a>
+  </div>
+
+  <div class="container">
+    <!-- Estadísticas Generales -->
+    <section class="dashboard-section">
+      <h2><i class="fas fa-chart-pie"></i> Estadísticas por Asistente</h2>
+      
+      <div class="stats-cards">
+        <% if (stats && stats.totalPorAsistente) { %>
+          <% stats.totalPorAsistente.forEach(asistente => { %>
+            <div class="stat-card assistant-<%= asistente.nombre.toLowerCase() %>">
+              <div class="stat-icon">
+                <i class="fas fa-robot"></i>
+              </div>
+              <div class="stat-content">
+                <h3><%= asistente.nombre %></h3>
+                <div class="stat-value"><%= asistente.total.toLocaleString() %></div>
+                <div class="stat-label">Conversaciones</div>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="no-data">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>No hay datos disponibles</p>
+          </div>
+        <% } %>
+        
+        <!-- Promedio de mensajes -->
+        <% if (stats && stats.promedioMensajes) { %>
+          <div class="stat-card assistant-promedio">
+            <div class="stat-icon">
+              <i class="fas fa-calculator"></i>
+            </div>
+            <div class="stat-content">
+              <h3>Promedio</h3>
+              <div class="stat-value"><%= stats.promedioMensajes.promedioGeneral %></div>
+              <div class="stat-label">Mensajes por conversación</div>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </section>
+    
+    <!-- Gráficos -->
+    <section class="dashboard-section">
+      <h2><i class="fas fa-chart-bar"></i> Tendencias</h2>
+      
+      <div class="chart-tabs">
+        <div class="tab-buttons">
+          <button class="tab-button active" data-period="dia">Últimas 24 horas</button>
+          <button class="tab-button" data-period="semana">Última semana</button>
+          <button class="tab-button" data-period="mes">Último mes</button>
+        </div>
+        
+        <div class="chart-container">
+          <canvas id="conversationsChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- Gráfico de Distribución por Asistente -->
+      <div class="chart-container" style="margin-top: 2rem;">
+        <h3>Distribución por Asistente</h3>
+        <canvas id="assistantDistributionChart"></canvas>
+      </div>
+    </section>
+    
+    <!-- Conversaciones Recientes -->
+    <section class="dashboard-section">
+      <h2><i class="fas fa-history"></i> Conversaciones Recientes</h2>
+      
+      <div class="recent-conversations">
+        <% if (stats && stats.conversacionesRecientes && stats.conversacionesRecientes.length > 0) { %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Teléfono</th>
+                <th>Asistente</th>
+                <th>Último Mensaje</th>
+                <th>Fecha</th>
+                <th>Mensajes</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% stats.conversacionesRecientes.forEach(conv => { %>
+                <tr>
+                  <td><%= conv.sessionId %></td>
+                  <td>
+                    <span class="assistant-badge assistant-<%= conv.asistente.toLowerCase() %>">
+                      <%= conv.asistente %>
+                    </span>
+                  </td>
+                  <td class="message-preview">
+                    <% if (conv.ultimoMensaje) { %>
+                      <span class="<%= conv.ultimoMensaje.tipo === 'human' ? 'user-message' : 'assistant-message' %>">
+                        <%= conv.ultimoMensaje.contenido %>
+                      </span>
+                    <% } else { %>
+                      <em>Sin mensajes</em>
+                    <% } %>
+                  </td>
+                  <td><%= new Date(conv.fecha).toLocaleString('es-ES', { 
+                    day: '2-digit', 
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) %></td>
+                  <td><%= conv.cantidadMensajes %></td>
+                  <td>
+                    <% 
+                      let coleccion;
+                      if (conv.asistente === "Granville") {
+                        coleccion = "asistente";
+                      } else if (conv.asistente === "Fortecar") {
+                        coleccion = "asistente_fc";
+                      } else if (conv.asistente === "Pampawagen") {
+                        coleccion = "asistente_pw";
+                      }
+                    %>
+                    <a href="/chats/<%= coleccion %>?sessionId=<%= conv.sessionId %>" class="btn btn-primary btn-sm">
+                      <i class="fas fa-eye"></i> Ver
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } else { %>
+          <div class="no-data">
+            <i class="fas fa-comments"></i>
+            <p>No hay conversaciones recientes</p>
+          </div>
+        <% } %>
+      </div>
+    </section>
+    
+    <!-- Promedio de Mensajes por Asistente -->
+    <section class="dashboard-section">
+      <h2><i class="fas fa-comment-dots"></i> Promedio de Mensajes por Asistente</h2>
+      
+      <div class="stats-cards">
+        <% if (stats && stats.promedioMensajes && stats.promedioMensajes.porAsistente) { %>
+          <% stats.promedioMensajes.porAsistente.forEach(item => { %>
+            <div class="stat-card assistant-<%= item.asistente.toLowerCase() %>">
+              <div class="stat-content">
+                <h3><%= item.asistente %></h3>
+                <div class="stat-value"><%= item.promedio %></div>
+                <div class="stat-label">Mensajes promedio</div>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="no-data">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>No hay datos disponibles</p>
+          </div>
+        <% } %>
+      </div>
+    </section>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="header" style="margin-top: 2rem;">
+    <div class="container">
+      <p>© <%= new Date().getFullYear() %> Chat Viewer - Desarrollado por DMGSys</p>
+    </div>
+  </footer>
+
+  <!-- Datos para gráficos -->
+  <script>
+    // Datos para los gráficos
+    const dashboardData = <%- JSON.stringify(stats || {}) %>;
+    
+    // Configuración de colores por asistente
+    const assistantColors = {
+      Granville: '#4a6fa5',
+      Fortecar: '#28a745',
+      Pampawagen: '#ffc107'
+    };
+    
+    // Cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', () => {
+      // Inicializar gráficos
+      initCharts();
+      
+      // Configurar tabs para cambiar entre períodos
+      setupTabs();
+    });
+    
+    // Inicializar gráficos
+    function initCharts() {
+      // Gráfico de distribución por asistente (dona)
+      if (dashboardData.totalPorAsistente && dashboardData.totalPorAsistente.length > 0) {
+        const ctx1 = document.getElementById('assistantDistributionChart').getContext('2d');
+        new Chart(ctx1, {
+          type: 'doughnut',
+          data: {
+            labels: dashboardData.totalPorAsistente.map(a => a.nombre),
+            datasets: [{
+              data: dashboardData.totalPorAsistente.map(a => a.total),
+              backgroundColor: dashboardData.totalPorAsistente.map(a => assistantColors[a.nombre] || '#6c757d'),
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'bottom',
+              },
+              title: {
+                display: true,
+                text: 'Distribución de Conversaciones por Asistente'
+              }
+            }
+          }
+        });
+      }
+      
+      // Gráfico de conversaciones por período (línea)
+      if (dashboardData.conversacionesPorPeriodo && dashboardData.conversacionesPorPeriodo.dia) {
+        const ctx2 = document.getElementById('conversationsChart').getContext('2d');
+        window.conversationsChart = new Chart(ctx2, {
+          type: 'line',
+          data: {
+            labels: dashboardData.conversacionesPorPeriodo.dia.map(d => d.periodo),
+            datasets: [{
+              label: 'Conversaciones',
+              data: dashboardData.conversacionesPorPeriodo.dia.map(d => d.total),
+              borderColor: '#4a6fa5',
+              backgroundColor: 'rgba(74, 111, 165, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false
+              },
+              title: {
+                display: true,
+                text: 'Conversaciones por Hora (Últimas 24 horas)'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+    
+    // Configurar tabs para cambiar entre períodos
+    function setupTabs() {
+      const tabButtons = document.querySelectorAll('.tab-button');
+      
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          // Quitar clase activa de todos los botones
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          
+          // Agregar clase activa al botón clickeado
+          button.classList.add('active');
+          
+          // Obtener período seleccionado
+          const period = button.dataset.period;
+          
+          // Actualizar gráfico con datos del período seleccionado
+          updateChartData(period);
+        });
+      });
+    }
+    
+    // Actualizar datos del gráfico según período
+    function updateChartData(period) {
+      if (!window.conversationsChart || !dashboardData.conversacionesPorPeriodo) return;
+      
+      let title = '';
+      switch(period) {
+        case 'dia':
+          title = 'Conversaciones por Hora (Últimas 24 horas)';
+          break;
+        case 'semana':
+          title = 'Conversaciones por Día (Última semana)';
+          break;
+        case 'mes':
+          title = 'Conversaciones por Día (Último mes)';
+          break;
+      }
+      
+      // Actualizar datos y título del gráfico
+      window.conversationsChart.data.labels = dashboardData.conversacionesPorPeriodo[period].map(d => d.periodo);
+      window.conversationsChart.data.datasets[0].data = dashboardData.conversacionesPorPeriodo[period].map(d => d.total);
+      window.conversationsChart.options.plugins.title.text = title;
+      window.conversationsChart.update();
+    }
+  </script>
+</body>
+</html>

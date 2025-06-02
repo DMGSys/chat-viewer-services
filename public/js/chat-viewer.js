@@ -254,25 +254,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // Create header with session info
       const header = document.createElement('div');
       header.className = 'chat-header';
-      
-      // Get the first timestamp from the chat
-      let firstTimestamp;
-      if (sessionChats[0].mensajes && sessionChats[0].mensajes.length > 0) {
-        firstTimestamp = sessionChats[0].mensajes[0].fecha;
-      } else if (sessionChats[0].messages && sessionChats[0].messages.length > 0) {
-        firstTimestamp = sessionChats[0].messages[0].timestamp;
-      } else {
-        firstTimestamp = sessionChats[0].fecha || new Date();
-      }
-      
       header.innerHTML = `
         <h2>
           <span class="assistant-badge assistant-${assistantType.toLowerCase()}">${assistantType}</span>
           ${formatPhoneNumber(sessionId)}
         </h2>
         <div class="chat-session-info">
-          <span>${formatDate(firstTimestamp)}</span>
-          <span>${getMessageCount(sessionChats)} mensajes</span>
+          <span>${formatDate(sessionChats[0].fecha)}</span>
+          <span>${sessionChats.length} mensajes</span>
         </div>
       `;
       
@@ -282,25 +271,15 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Add messages
       sessionChats.forEach(chat => {
-        // Handle different message formats
-        if (chat.messages && Array.isArray(chat.messages)) {
-          // New format: messages array with type and data.content
-          chat.messages.forEach(message => {
-            const messageEl = createMessageElement({
-              texto: message.data.content,
-              esUsuario: message.type === 'human',
-              fecha: message.timestamp
-            }, assistantType);
-            messagesContainer.appendChild(messageEl);
-          });
-        } else if (chat.mensajes && Array.isArray(chat.mensajes)) {
-          // Old format: mensajes array with esUsuario and texto
+        // Check if chat has mensajes array or single mensaje
+        if (chat.mensajes && Array.isArray(chat.mensajes)) {
+          // Handle multiple messages format
           chat.mensajes.forEach(mensaje => {
             const messageEl = createMessageElement(mensaje, assistantType);
             messagesContainer.appendChild(messageEl);
           });
         } else if (chat.mensaje) {
-          // Single message format
+          // Handle single message format
           const messageEl = createMessageElement({
             texto: chat.mensaje,
             esUsuario: chat.esUsuario,
@@ -317,27 +296,6 @@ document.addEventListener('DOMContentLoaded', () => {
       // Append session to container
       container.appendChild(chatSession);
     });
-  }
-  
-  /**
-   * Get total message count from session chats
-   * @param {Array} sessionChats - Array of chat objects for a session
-   * @returns {number} Total message count
-   */
-  function getMessageCount(sessionChats) {
-    let count = 0;
-    
-    sessionChats.forEach(chat => {
-      if (chat.messages && Array.isArray(chat.messages)) {
-        count += chat.messages.length;
-      } else if (chat.mensajes && Array.isArray(chat.mensajes)) {
-        count += chat.mensajes.length;
-      } else if (chat.mensaje) {
-        count += 1;
-      }
-    });
-    
-    return count;
   }
   
   /**
@@ -362,7 +320,6 @@ document.addEventListener('DOMContentLoaded', () => {
    * @returns {string} Assistant type name
    */
   function determineAssistantType(chat) {
-    // Check for direct assistant type indicators
     if (chat.asistente === "Granville") {
       return "Granville";
     } else if (chat.asistente_fc === "Fortecar") {
@@ -370,38 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (chat.asistente_pw === "Pampawagen") {
       return "Pampawagen";
     }
-    
-    // Check in messages array (new format)
-    if (chat.messages && Array.isArray(chat.messages)) {
-      // Look for assistant messages
-      const assistantMessages = chat.messages.filter(m => m.type === 'ai');
-      if (assistantMessages.length > 0) {
-        const content = assistantMessages[0].data.content;
-        if (content.includes('Pampawagen') || content.includes('Martina')) {
-          return "Pampawagen";
-        } else if (content.includes('Fortecar')) {
-          return "Fortecar";
-        } else if (content.includes('Granville')) {
-          return "Granville";
-        }
-      }
-    }
-    
-    // Check in mensajes array (old format)
-    if (chat.mensajes && Array.isArray(chat.mensajes)) {
-      const assistantMessages = chat.mensajes.filter(m => !m.esUsuario);
-      if (assistantMessages.length > 0) {
-        const content = assistantMessages[0].texto;
-        if (content.includes('Pampawagen') || content.includes('Martina')) {
-          return "Pampawagen";
-        } else if (content.includes('Fortecar')) {
-          return "Fortecar";
-        } else if (content.includes('Granville')) {
-          return "Granville";
-        }
-      }
-    }
-    
     return "Asistente";
   }
   

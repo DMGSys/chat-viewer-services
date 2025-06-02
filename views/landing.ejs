@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* Estilos específicos para la landing page */
+    .hero-section {
+      background: linear-gradient(135deg, #4a6fa5 0%, #2d4b7a 100%);
+      color: white;
+      padding: 3rem 0;
+      margin-bottom: 2rem;
+      border-radius: var(--border-radius);
+      text-align: center;
+    }
+    
+    .hero-section h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .hero-section p {
+      font-size: 1.2rem;
+      max-width: 800px;
+      margin: 0 auto 1.5rem;
+      opacity: 0.9;
+    }
+    
+    .feature-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .feature-card {
+      flex: 1;
+      min-width: 280px;
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+      padding: 1.5rem;
+      color: white;
+      text-align: center;
+    }
+    
+    .card-header i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    
+    .card-body {
+      padding: 1.5rem;
+    }
+    
+    .card-body p {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      color: var(--secondary-color);
+      line-height: 1.6;
+    }
+    
+    .dashboard-card .card-header {
+      background-color: #6c757d;
+    }
+    
+    .granville-card .card-header {
+      background-color: var(--granville-color);
+    }
+    
+    .fortecar-card .card-header {
+      background-color: var(--fortecar-color);
+    }
+    
+    .pampawagen-card .card-header {
+      background-color: var(--pampawagen-color);
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.2s;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .dashboard-card .cta-button {
+      background-color: #6c757d;
+    }
+    
+    .dashboard-card .cta-button:hover {
+      background-color: #5a6268;
+    }
+    
+    .granville-card .cta-button {
+      background-color: var(--granville-color);
+    }
+    
+    .granville-card .cta-button:hover {
+      background-color: #3a5a84;
+    }
+    
+    .fortecar-card .cta-button {
+      background-color: var(--fortecar-color);
+    }
+    
+    .fortecar-card .cta-button:hover {
+      background-color: #218838;
+    }
+    
+    .pampawagen-card .cta-button {
+      background-color: var(--pampawagen-color);
+    }
+    
+    .pampawagen-card .cta-button:hover {
+      background-color: #e0a800;
+    }
+    
+    @media (max-width: 768px) {
+      .hero-section {
+        padding: 2rem 0;
+      }
+      
+      .hero-section h1 {
+        font-size: 2rem;
+      }
+      
+      .feature-cards {
+        flex-direction: column;
+      }
+      
+      .feature-card {
+        width: 100%;
+      }
+    }
+    
+    /* Animaciones */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .hero-section {
+      animation: fadeInUp 0.8s ease-out;
+    }
+    
+    .feature-card {
+      animation: fadeInUp 0.8s ease-out;
+      animation-fill-mode: both;
+    }
+    
+    .feature-card:nth-child(1) { animation-delay: 0.1s; }
+    .feature-card:nth-child(2) { animation-delay: 0.3s; }
+    .feature-card:nth-child(3) { animation-delay: 0.5s; }
+    .feature-card:nth-child(4) { animation-delay: 0.7s; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <h1><i class="fas fa-comments"></i> Chat Viewer</h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <h1>Visualizador de Conversaciones</h1>
+      <p>Explore, analice y exporte conversaciones de los asistentes Granville, Fortecar y Pampawagen. Una herramienta completa para auditar y mejorar la calidad de las respuestas.</p>
+    </section>
+    
+    <!-- Feature Cards -->
+    <section class="feature-cards">
+      <!-- Dashboard Card -->
+      <div class="feature-card dashboard-card">
+        <div class="card-header">
+          <i class="fas fa-chart-line"></i>
+          <h2>Dashboard</h2>
+        </div>
+        <div class="card-body">
+          <p>Visualice estadísticas clave sobre las conversaciones de todos los asistentes. Obtenga información sobre volumen de chats, tendencias y métricas de rendimiento.</p>
+          <a href="/dashboard" class="cta-button">
+            <i class="fas fa-chart-pie"></i> Ver Dashboard
+          </a>
+        </div>
+      </div>
+      
+      <!-- Granville Card -->
+      <div class="feature-card granville-card">
+        <div class="card-header">
+          <i class="fas fa-robot"></i>
+          <h2>Granville</h2>
+        </div>
+        <div class="card-body">
+          <p>Explore las conversaciones del asistente Granville. Filtre por número de teléfono, fechas o palabras clave para encontrar rápidamente las interacciones que necesita.</p>
+          <a href="/chats/asistente" class="cta-button">
+            <i class="fas fa-comments"></i> Ver Chats de Granville
+          </a>
+        </div>
+      </div>
+      
+      <!-- Fortecar Card -->
+      <div class="feature-card fortecar-card">
+        <div class="card-header">
+          <i class="fas fa-car"></i>
+          <h2>Fortecar</h2>
+        </div>
+        <div class="card-body">
+          <p>Acceda a todas las conversaciones del asistente Fortecar. Utilice las herramientas de búsqueda y filtrado para auditar respuestas y mejorar la experiencia del usuario.</p>
+          <a href="/chats/asistente_fc" class="cta-button">
+            <i class="fas fa-comments"></i> Ver Chats de Fortecar
+          </a>
+        </div>
+      </div>
+      
+      <!-- Pampawagen Card -->
+      <div class="feature-card pampawagen-card">
+        <div class="card-header">
+          <i class="fas fa-truck-pickup"></i>
+          <h2>Pampawagen</h2>
+        </div>
+        <div class="card-body">
+          <p>Revise las conversaciones del asistente Pampawagen. Exporte los datos filtrados para análisis detallados o para entrenar y mejorar el asistente.</p>
+          <a href="/chats/asistente_pw" class="cta-button">
+            <i class="fas fa-comments"></i> Ver Chats de Pampawagen
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="header" style="margin-top: 2rem;">
+    <div class="container">
+      <p>© <%= new Date().getFullYear() %> Chat Viewer - Desarrollado por DMGSys</p>
+    </div>
+  </footer>
+</body>
+</html>
